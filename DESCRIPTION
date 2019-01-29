@@ -1,0 +1,16 @@
+Package: CRAbun
+Type: Package
+Title: Maximum likelihood abundance estimation from capture-recapture data when covariates are missing at random
+Version: 0.1.0
+Date: 2019-01-28
+Author: Yang Liu
+Maintainer: Yang Liu <liuyangecnu@163.com>
+Description: This package allows for the maximum likelihood abundance estimation
+    for abundance under capture-recapture models when covariates are missing at random.
+    We calculate the maximum empirical likelihood estimates of the abundance and 
+    parameters in the capture probability. We also give a empirical likelihood ratio 
+    confidence interval of the abundance. In addition, we provide the corresponding estimates 
+    based on the inverse probability weighting and multiple imputation methods. 
+License: GPL
+Encoding: UTF-8
+LazyData: true
