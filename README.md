@@ -1,9 +1,9 @@
 # AbunCR
 Some new methods are developed to make statistical inference for the abundance under capture-recapture models.
+Below are key functions in this package.
 
 
-
-# CRMiss function
+### CRMiss function
 When covariates are missing at random, four estimation methods for the abundance are carried out 
 under capture-recapture models.
 
