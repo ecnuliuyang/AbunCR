@@ -1,4 +1,4 @@
-# AbunCR
+# CRAbun
 Some new methods are developed to make statistical inference for the abundance under capture-recapture models.
 Below are key functions in this package.
 
@@ -7,13 +7,13 @@ Below are key functions in this package.
 When covariates are missing at random, four estimation methods for the abundance are carried out 
 under capture-recapture models.
 
-First method is based on a new maximum empirical likelihood.
+First method is a new maximum empirical likelihood estimation method (MELE).
 Refer to Liu et al. (2019+).
 
-Second method is based on the naive maximum empirical likelihood derived from the complete cases.
+Second method is based on the naive maximum empirical likelihood derived from the complete cases (CC).
 See Liu et al. (2017).
 
-The last two are based on the inverse probability weighting and multiple imputation methods.
+The last two are based on the inverse probability weighting (IPW) and multiple imputation (MI) methods.
 See Lee et al. (2016).
 
 # References
