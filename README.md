@@ -3,7 +3,7 @@ Some new methods are developed to make statistical inference for the abundance u
 
 
 
-# CRMiss()
+# CRMiss function
 When covariates are missing at random, four estimation methods for the abundance are carried out 
 under capture-recapture models.
 
