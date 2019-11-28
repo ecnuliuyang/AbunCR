@@ -10,9 +10,18 @@
 
 el.lagrange <- function(t){
   
+  ### Function to approximate log(t)
+  logg <- function(t){
+    
+    eps <- 1e-5
+    ts <- t*(t>eps)+1*(t<=eps)
+    log(ts) * (t>eps) + (log(eps) - 1.5 + 2*t/eps - (t/eps)^2*0.5) * (t<=eps)
+    
+  }
+  
   emplik <- function(lam)  - sum( logg( 1 + lam*t ) )
   
-  optimize(f=emplik, interval=c(-1000, 1000))
+  optimize(f=emplik, interval=c(-1e3, 1e3))
 }
 
 
@@ -20,11 +29,12 @@ el.lagrange <- function(t){
 ###  2. Minimize  - h.1(N,alpha) with respect to N for the given alpha    
 #################################################################################
 
-slike.part1 <- function(m, alpha){ 
+slike.part1 <- function(n, alpha){
   
-  fgamma <- function(nu) - sum( log((nu - m + 1):nu) ) - (nu - m) * log(alpha)  
+  fgamma <- function(nt) - sum( log((nt - n + 1):nt) ) - (nt - n) * log(alpha+1e-20)  
   
-  optimize(fgamma, interval=c(m, 100*m), tol=0.01)
+  optimize(fgamma, interval=c(n, 100*n), tol=0.01)
+  
 }
 
 #################################################################################
@@ -33,9 +43,11 @@ slike.part1 <- function(m, alpha){
 
 slike.part23 <- function(z.mat, d.obs, K, beta.init, alpha){
   
+  z.mat <- as.matrix(z.mat)
+  
   fun23 <- function(beta){
     
-    g.beta <- expit(z.mat%*%beta)
+    g.beta <- as.numeric( plogis(z.mat%*%beta) )
     phi <- (1 - g.beta)^K
     result.lagrange <- el.lagrange( phi - alpha )
     
@@ -47,7 +59,7 @@ slike.part23 <- function(z.mat, d.obs, K, beta.init, alpha){
   
   gr <- function(beta){
     
-    g.beta <- expit(z.mat%*%beta)
+    g.beta <- as.numeric( plogis(z.mat%*%beta) )
     phi <- (1-g.beta)^K
     result.lagrange <- el.lagrange( phi - alpha )
     lam <- result.lagrange$minimum
@@ -65,50 +77,53 @@ slike.part23 <- function(z.mat, d.obs, K, beta.init, alpha){
 #################################################################################
 ###  4. Calculate empirical likelihood function for the given N.0  
 #################################################################################
-sel.null <- function(z.mat, d.obs, K, beta.init, nu0){
+sel.null <- function(z.mat, d.obs, K, beta.init, n.big0){
   
-  m <- length(d.obs)
+  n <- length(d.obs)
   falpha.null <- function(alpha){
     
-    tmp1 <- - sum( log((nu0 - m + 1):nu0) ) - (nu0 - m) * log(alpha)
+    tmp1 <- - sum( log((n.big0 - n + 1):n.big0) ) - (n.big0 - n) * log(alpha)
     tmp2 <- slike.part23(z.mat, d.obs, K, beta.init, alpha)$objective
     tmp1 + tmp2
   }
   
   eps <- 1e-5
-  out <- optimize(falpha.null, interval=c(eps, 1-eps), tol=0.0001)
+  out <- optimize(falpha.null, interval=c(eps, 1-eps), tol=eps)
   - out$objective
 }
 
 
 #################################################################################
-###  5. Implement empirical likelihood method    
+###  5. Implement empirical likelihood method with no missing data   
 #################################################################################
-el.cc <- function(z.mat, d.obs, K, beta.init, level){
-  # z.mat = newz
-  # d.obs = cap.times[ind.obs == 1]
-  m <- length(d.obs)
+###  note: first column of z.mat is a vector with elements being 1.
+el.opt.cc <- function(z, d, K, CI = TRUE, level = .95,
+                   beta.initial = rep(0, ncol(as.matrix(z)))){
+  
+  z.mat <- as.matrix(z)
+  d.obs <- as.numeric(d)
+  n <- length(d.obs)
   falpha <- function(alpha){
     
-    tmp1 <- slike.part1(m, alpha)$objective
-    tmp2 <- slike.part23(z.mat, d.obs, K, beta.init, alpha)$objective
+    tmp1 <- slike.part1(n, alpha)$objective
+    tmp2 <- slike.part23(z.mat, d.obs, K, beta.initial, alpha)$objective
     tmp1 + tmp2
   }
   
-  eps <- 1e-6
-  out <- optimize(falpha, interval=c(eps, 1-eps), tol=0.0001)
+  eps <- 1e-5
+  out <- optimize(falpha, interval=c(eps, 1-eps), tol=eps)
   like <- - out$objective
   alpha.est <- out$minimum
   
   ##############  EL estimator of N  ##############
   
-  out1 <- slike.part1(m, alpha.est)
-  nu.est <- out1$minimum
+  out1 <- slike.part1(n, alpha.est)
+  n.big.est <- out1$minimum
   
   #################################################
   ############## EL estimator of beta  ############
   
-  out23 <- slike.part23(z.mat, d.obs, K, beta.init, alpha.est)
+  out23 <- slike.part23(z.mat, d.obs, K, beta.initial, alpha.est)
   beta.est <- out23$par
   
   #################################################
@@ -116,13 +131,19 @@ el.cc <- function(z.mat, d.obs, K, beta.init, level){
   
   ###########   probability weights of EL  ##############
   
-  g.beta <- expit(z.mat %*% beta.est)
+  g.beta <- as.numeric( plogis(z.mat %*% beta.est) )
   phi <- (1 - g.beta)^K
   lam <- el.lagrange(phi - alpha.est)$minimum
-  prob.est <- 1 / ( m*(1+lam*(phi-alpha.est)) )
+  prob.est <- 1 / ( n*(1+lam*(phi-alpha.est)) )
   
   ###########      Test of convergence     ##############
   converge <- ifelse( abs(1 - sum(prob.est) ) < 1e-2 & all(prob.est > 0) & all(prob.est < 1), 0, 1 )
+  
+  #### Maximum empirical log-likelihood and AIC #######
+  log.like <- sum( log((n.big.est - n + 1):n.big.est) ) - sum(log(1:n)) + 
+    (n.big.est - n) * log(alpha.est) + sum(log(prob.est)) +
+    sum( d.obs * log(g.beta + 1e-300) + (K - d.obs) * log(1 - g.beta + 1e-300) )
+  AIC <- 2*(-log.like + length(beta.est) + 1 + 1)
   
   ###########   ELR based CI  ##############
   
@@ -134,17 +155,20 @@ el.cc <- function(z.mat, d.obs, K, beta.init, level){
     
   }
   
-  ntemp <- nu.est
-  while(rn(ntemp) <= 0) ntemp <- ntemp*2
+  if (CI) {
+    ntemp <- n.big.est
+    while(rn(ntemp) <= 0) ntemp <- ntemp*2
+    
+    ci.upper <- uniroot(rn, c(n.big.est, ntemp))$root
+    if (rn(n) <= 0) {
+      ci.lower <- n
+    }else{
+      ci.lower <- uniroot(rn, c(n, n.big.est))$root
+    }
+    
+    ci.est <- c(ci.lower, ci.upper)
+  } else ci.est <- NULL
   
-  ci.upper <- uniroot(rn, c(nu.est, ntemp))$root
-  if (rn(m) <= 0) {
-    ci.lower <- m
-  }else{
-    ci.lower <- uniroot(rn, c(m, nu.est))$root
-  }
-  
-  ci.est <- c(ci.lower, ci.upper)
   
   ###########   Variance estimates  ##############
   dim_q=ncol(z.mat)
@@ -153,14 +177,14 @@ el.cc <- function(z.mat, d.obs, K, beta.init, level){
   
   beta=beta.est
   phi=(1-g.beta)^K
-  n_tilde = nu.est
-  phistar=sum(1/(1-phi+1e-300)^2)/n_tilde
+  n.big.est = n.big.est
+  phistar=sum(1/(1-phi+1e-300)^2)/n.big.est
   
   V23.coef=(phi/(1-phi+1e-300)^2)*K*g.beta
   V22.coef=(d.obs-K*g.beta/(1-phi+1e-300))^2
   V22.part2=z.mat
   
-  for(i in 1:m)
+  for(i in 1:n)
   {
     
     V23=V23+V23.coef[i]*z.mat[i,]
@@ -170,18 +194,22 @@ el.cc <- function(z.mat, d.obs, K, beta.init, level){
     
   }
   
-  V23=V23/n_tilde;
-  V22=-V22/n_tilde
+  V23=V23/n.big.est;
+  V22=-V22/n.big.est
   V23=matrix(V23,ncol=1)
   V32=t(V23)
   V22.inv=solve(V22-diag(1e-300,dim_q,dim_q));
   tmp = V32%*%V22.inv%*%V23
   tmp=as.numeric(tmp)
   
-  sigma_hat =  phistar - 1 -tmp
-
-  list(nu.est = nu.est, ci.est = ci.est, alpha.est = alpha.est, beta.est = beta.est, converge = converge,
-       se.nu = sqrt(sigma_hat*nu.est), se.beta = diag(- V22.inv)/nu.est)
+  sigma_hat =  phistar - 1 - tmp
+  
+  list(n.big.est = n.big.est, ci.est = ci.est, 
+       alpha.est = alpha.est, beta.est = beta.est,
+       like = log.like, AIC = AIC,
+       converge = converge,
+       se.nu = sqrt(sigma_hat*n.big.est), 
+       se.beta = sqrt(diag(- V22.inv)/n.big.est))
   
 }
 
