@@ -1,131 +1,173 @@
 #################################################################################
-###               Predefined functions
-#################################################################################
-
-#################################################################################
-###  1. Function to approximate log(t)
-#################################################################################
-
-logg <- function(t){
-  
-  eps <- 1e-5
-  ts <- t*(t>eps)+1*(t<=eps)
-  log(ts) * (t>eps) + (log(eps) - 1.5 + 2*t/eps - (t/eps)^2*0.5) * (t<=eps)
-  
-}
-
-
-#################################################################################
-###  2. For the given x, calculate exp(x)/(1+exp(x) )
-#################################################################################
-
-expit <- function(x)  plogis(x, 0, 1)
-
-
-#################################################################################
 ###   Main function for capture recapture model when covariates are subject to missing
-###         Implement the empirical likelihoods & IPW & MI methods
+###         Implement the empirical likelihood methods
 #################################################################################
 
-
-CRMiss <- function(cov.bin = NULL, cov.miss, cap.times, ind.obs, K, level = 0.95, M = 100){
+abun.opt <- function (formula, data, K = NULL, 
+                      maxN = NULL, beta.initial = NULL,
+                      CI = TRUE, level = 0.95, 
+                      SE = TRUE ) {
   
-  ### clear the data set
-  x <- c(cov.bin[ind.obs == 1], cov.bin[ind.obs == 0])
-  d <- c(cap.times[ind.obs == 1], cap.times[ind.obs == 0])
-  n <- length(ind.obs)
-  m <- sum(ind.obs)
+  if (is.null(K)) stop("please specify the number K")
   
-  z.mat <- cbind(1, cov.bin[ind.obs == 1], cov.miss[ind.obs == 1])
-  rz <- apply(z.mat, 2, max)
-  mrz <- matrix(rz, nrow = m, ncol = ncol(z.mat), byrow=T)
-  newz <- z.mat/mrz
+  cl <- match.call()
+  mf <- match.call(expand.dots = FALSE)
+  m <- match(c("formula", "data"), names(mf), 0L)
+  mf <- mf[c(1L, m)]
+  mf$na.action <- na.pass
+  mf[[1L]] <- as.name("model.frame")
+  mf <- eval(mf, parent.frame())
+  mt <- attr(mf, "terms")
+  xlev <- .getXlevels(mt, mf)
   
-  ###   The inverse probability weighting method
+  d <- as.matrix( model.response(mf, "any") )
+  x <- if (!is.empty.model(mt))
+    model.matrix(mt, mf)
   
-  out.ipw <- ipw.miss(cov.bin[ind.obs == 0], newz, cap.times[ind.obs == 1], cap.times[ind.obs == 0], K)
+  if (is.null(beta.initial)) beta.initial <- runif( ncol(as.matrix(x)), -1, 1 )
   
-  ###   The multiple imputation method
-  
-  out.mi <- im2.miss(cov.bin[ind.obs == 0], newz, cap.times[ind.obs == 1], cap.times[ind.obs == 0], K, M)
-  
-  ###   The naive empirical likelihood method
-  
-  out.el.cc <- el.cc(newz, cap.times[ind.obs == 1], K, beta.init = out.ipw$beta.est, level)
-  
-  ###   The proposed empirical likelihood method
-  
-  out.el <- el.miss(x, newz, d, K, beta.init = out.ipw$beta.est, level)
-  
-  ### Restore the estimates of beta
-  
-  out.ipw$beta.est <- out.ipw$beta.est/rz
-  out.mi$beta.est <- out.mi$beta.est/rz
-  out.el.cc$beta.est <- out.el.cc$beta.est/rz
-  out.el$beta.est <- out.el$beta.est/rz
-  
-  ### tidy the estimates of beta
-  
-  p <- length(out.ipw$beta.est)
-  out <- matrix(0, 4, p*2)
-  rownames(out) <- c('MELE', 'IPW', 'MI', 'CC')
-  colnames(out) <- c(paste0('est.beta', 1:p), paste0('se.beta', 1:p))
-  
-  out[1,] <- c(out.el$beta.est, out.el$se.beta/rz)
-  out[2,] <- c(out.ipw$beta.est, sqrt(out.ipw$sigma2.beta)/rz)
-  out[3,] <- c(out.mi$beta.est, sqrt(out.mi$sigma2.beta)/rz)
-  out[4,] <- c(out.el.cc$beta.est, out.el.cc$se.beta/rz)
-  
-  out.beta <- round(out, 4)
-  
-  ### confidence intervals of nu
-  
-  temp.ipw <- qnorm(0.5 + level/2) * sqrt(out.ipw$sigma2.nu)
-  temp.mi <- qnorm(0.5 + level/2) * sqrt(out.mi$sigma2.nu)
-  
-  out.ipw$ci.est <- c( out.ipw$nu.est - temp.ipw, out.ipw$nu.est + temp.ipw )
-  out.mi$ci.est <- c( out.mi$nu.est - temp.mi, out.mi$nu.est + temp.mi )
-  
-  ### tidy the estimates of nu
-  out <- matrix(0, 4, 4)
-  rownames(out) <- c('MELE', 'IPW', 'MI', 'CC')
-  colnames(out) <- c('est', 'lower', 'upper', 'se')
-  
-  out[1,1] <- out.el$nu.est
-  out[2,1] <- out.ipw$nu.est
-  out[3,1] <- out.mi$nu.est
-  out[4,1] <- out.el.cc$nu.est
-  out[1,2:3] <- out.el$ci.est
-  out[2,2:3] <- out.ipw$ci.est
-  out[3,2:3] <- out.mi$ci.est
-  out[4,2:3] <- out.el.cc$ci.est
-  out[1,4] <- out.el$se.nu
-  out[2,4] <- sqrt(out.ipw$sigma2.nu)
-  out[3,4] <- sqrt(out.mi$sigma2.nu)
-  out[4,4] <- out.el.cc$se.nu
-  
-  out.nu <- round(out,2)
-  
-  ### tidy the maximum empirical likelihood estimate of alpha
-  if ( is.null(cov.bin) ) {
+  if ( all(!is.na(x)) ) {
+    rt <- opt.el.cc ( d = d, K = K, z = as.matrix(x), maxN = NULL,
+                      beta.initial = beta.initial, N0 = NULL )
+  } else {
     
-    temp.alpha <- out.el$alpha.est[2:(K+1)]
-    names(temp.alpha) <- paste0('gamma', 1:K)
+    if ( !is.matrix(x) ) {
+      x.x = NULL
+    } else {
+      x.x <- x[, - unique(which(is.na(x), arr.ind = T)[,2])]
+    }
     
-  }else{
-    
-    temp.alpha <- matrix(out.el$alpha.est[2:(2*K+1)], 2, K, byrow = T)
-    colnames(temp.alpha) <- paste0('k=', 1:K)
-    rownames(temp.alpha) <- c('j=0', 'j=1')
+    x.y <- x[, unique(which(is.na(x), arr.ind = T)[,2])]
+    # print(head(x.x))
+    # print(head(x.y))
+    rt <- opt.el.mar ( d = d, K = K, x = x.x, y = x.y, 
+                       maxN = maxN, beta.initial = beta.initial, N0 = NULL )
     
   }
   
-  alpha.el <- list(gamma0.el = out.el$alpha.est[1],
-                   gammajk.el = temp.alpha)
+  if ( CI ) {
+    rt$n.big.ci <- abun.el.ci(rt, level = level)
+  }
+  rt$level <- level
   
-  ### Output
-  list(nu.est = out.nu, beta.est = out.beta, alpha.el = alpha.el,
-       loglike.el = out.el$loglike, converge = out.el$converge)
+  if ( SE )  rt$se <- abun.el.se(obj = rt)
+  
+  rt$call <- cl
+  if (is.matrix(x))  rt$x.names <- colnames(x)
+  else rt$x.names <- attr(mt,"term.labels")
+  class(rt) <- 'abun.opt'
+  
+  return(rt)
   
 }
+
+
+#################################################################################
+###  Function to obtain the EL ratio confidence interval of N        
+#################################################################################
+
+abun.el.ci <- function ( obj, level ) {
+  
+  ###  maximum empirical log-likelihood
+  like.full <- obj$like
+  n <- obj$n
+  
+  rn <- function (N0) {
+    
+    if (obj$class == 'abun.h')
+      # (d, K, z, maxN, beta.initial, N0 )
+      like.null <- opt.el.cc ( d = obj$d, K = obj$K, z = obj$z, maxN = obj$maxN,
+                               beta.initial = obj$beta.initial, N0 = N0)$like
+    
+    if (obj$class == 'abun.h.mar')
+      like.null <-  opt.el.mar ( d = obj$d, K = obj$K, x = obj$x, y = obj$y, maxN = obj$maxN, 
+                                 beta.initial = obj$beta.initial, N0 = N0 )$like
+    
+    2 * ( like.full - like.null ) - qchisq(level, 1)
+  }
+  
+  
+  hatN <- obj$n.big
+  ntemp <- 5 * hatN
+  while ( rn(ntemp) <= 0 )  ntemp <- ntemp*2
+  
+  if(ntemp > 1e5*n) stop('the likelihood is so flat that the upper limit is infinite')
+  
+  ci.upper <- uniroot( rn, c(hatN, ntemp), tol=0.01 )$root
+  if ( rn(n) <= 0 ) {
+    ci.lower <- n
+  } else {
+    ci.lower <- uniroot( rn, c(n, hatN), tol=0.01 )$root
+  }
+  
+  ci <- c(ci.lower, ci.upper)
+  
+  return(ci) 
+  
+}
+
+
+
+#################################################################################
+###  Function to calculate the Std. Error of estimates
+#################################################################################
+abun.el.se <- function (obj) {
+  
+  if (obj$class == 'abun.h')
+    rt <- se.el.cc( obj )
+  
+  if (obj$class == 'abun.h.mar') {
+    rt <- se.el.mar( obj )
+  }
+  
+  return(rt)
+  
+}
+
+
+#################################################################################
+###  Function to show the results
+#################################################################################
+
+print.abun.opt <- function (obj) {
+  
+  cat("\nCall:\n", paste(deparse(obj$call), sep = "\n", collapse = "\n"), 
+      "\n\n", sep = "")   
+  
+  cat ("Coefficients:\n")
+  if ( is.null(obj$se) ) {
+    coefficients <- matrix( round(obj$beta, 2),1)  
+    rownames(coefficients) <- "Estimate"
+    
+  } else {
+    coefficients <- rbind( round(obj$beta, 2),
+                           round(obj$se$beta.se, 2) )
+    rownames(coefficients) <- c('Estimate','Std. Error')
+  }
+  colnames(coefficients) <- paste0('beta', 1:ncol(coefficients))
+  
+  print(coefficients)
+  
+  cat ("\nAbundance:\n")
+  cat ("Estimate:", round(obj$n.big))
+  if ( is.null(obj$se) ) {
+    cat ("\nStd. Error: NULL")
+  } else {
+    cat ("\nStd. Error:", round(obj$se$n.big.se))
+  }
+  
+  if ( is.null(obj$n.big.ci) ) {
+    cat ("\n")
+    cat (paste0(100*obj$level,"%"),
+         "EL ratio CI: NULL \n")
+  } else {
+    cat ("\n")
+    cat (paste0(100*obj$level,"%"), 
+         "EL ratio CI: [", 
+         paste(round(obj$n.big.ci), collapse=', '), "]\n")
+  }
+  
+  cat("\nAIC of model:", obj$AIC,"\n\n")
+}
+
 
