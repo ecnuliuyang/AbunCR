@@ -21,7 +21,7 @@ we provide a function **abun.opt** with 8 options.
 - K: number stands for the number of capture occasions.
 - x: vector, matrix or data.frame stands for individual covariates without missingness.
 - y: vector, matrix or data.frame stands for individual covariates with missingness.
-- beta.initial: vector has the same length wih the coefficients in Huggins-Alho model. 0 means that the coefficient equals zero, and non-zero values are seen as initial values when optimizing.
+- beta.initial: vector has the same length wih the coefficients in Huggins-Alho model. 0 means that the corresponding coefficient is fixed to zero, and non-zero values are seen as initial values when optimizing.
 - CI: logistic with TRUE(default) to show the EL ratio confidence interval of *N*
 and FALSE to not.
 - level: number stands for the confidence level with default of 0.95.
