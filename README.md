@@ -1,5 +1,5 @@
 # CRAbun
-This package aims to show how to implement empirical likelihood (EL) methods under the Huggin-Alho model in capture recapture studies.
+This package aims to show how to implement empirical likelihood (EL) methods under the Huggin-Alho model in capture-recapture studies.
 As an example, we analyze a real data to show how to reproduce the results of Table 3 in Liu et al. (2020+).
 
 ## Instruction about CRAbun package
