@@ -11,7 +11,7 @@ This dataset is composed of 6 columns:
 - fat.index: 0 (nonfat) and 1 (fat), 
 which respectively corresponds to level 1 and level 2-4 in original data.
 - wing: individual covariate (43mm~49mm).
-- wing.cut: 0 (normal length) and 1 (long length), where "normal" means that the wing length ranges from 37mm to 45.5mm
+- wing.index: 0 (normal length) and 1 (long length), where "normal" means that the wing length ranges from 37mm to 45.5mm
 and "long" means that the wing length is larger than 45.5mm.
 
 ### 2. Optimization algorithm for EL methods
@@ -42,7 +42,7 @@ we give two functions:
 
 Lee, S.-M., W.-H. Hwang, and J. de Dieu Tapsoba (2016). 
 Estimation in closed capture–recapture models when covariates are missing at random. 
-*Biometrics* **72**(4), 1294--1304.as
+*Biometrics* **72**(4), 1294--1304.
 
 Liu, Y., P. Li, and J. Qin (2017). 
 Maximum empirical likelihood estimation for abundance in a closed
