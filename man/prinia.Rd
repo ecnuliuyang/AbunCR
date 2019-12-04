@@ -13,7 +13,7 @@ This data set is collected in Hongkong during 17 weeks from January to April in 
 
 \item{number.of.capture}{the number of times an individual is captured.}
 
-\item{tail.length}{the individual covariate (50mm~91.25mm) with 41 missing values (0).}
+\item{tail.length}{the individual covariate (50mm~91.25mm) with 41 missing values (NA).}
 
 \item{fat.index}{ the fat indicator. 0 means that the bird is not fat and 1 means fat, which respectively corresponds to level 1 and level 2-4 in original data.}
 

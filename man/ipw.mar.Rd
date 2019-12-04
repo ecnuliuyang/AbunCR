@@ -80,7 +80,6 @@ Estimation in closed capture-recapture models when covariates are missing at ran
 
 attach(prinia)
 
-tail.length[tail.length==0] <- NA
 ## Model 4
 (ipw4 <- ipw.mar( d = number.of.capture, K=17, x = cbind(1, fat.index, wing.index), y = tail.length,
                   beta.initial = c(-10,  0,  0, 0.1) ) )

@@ -90,6 +90,7 @@ opt.el.mar <- function ( d, K, x, y,
 
   lev.mis <- group.sum[, 1:(ncol(group.sum) - 1)]
   colnames(lev.mis) <- c('d', paste0('x',1:ncol(x.obs)))
+  lev.mis <- as.matrix(lev.mis)
   mk <- group.sum[, ncol(group.sum)]
 
 
@@ -194,6 +195,8 @@ se.el.mar <- function(obj) {
                          by = as.list(lev.mis), sum)
   lev.mis <- group.sum[, 1:(ncol(group.sum) - 1)]
   colnames(lev.mis) <- c('d', paste0('x',1:ncol(x.obs)))
+  lev.mis <- as.matrix(lev.mis)
+
   mk <- group.sum[, ncol(group.sum)]
 
 

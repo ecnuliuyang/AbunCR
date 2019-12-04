@@ -96,7 +96,6 @@ Liu, Y., Y. Liu, P. Li, and L. Zhu (2020+). Maximum likelihood abundance estimat
   ## Analysis results of the prinia data set.
 
   attach(prinia)
-  tail.length[tail.length==0] <- NA
 
   ### EL in the absence of missingness (CC)
   r <- !is.na(tail.length)
