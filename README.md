@@ -31,15 +31,15 @@ we give two functions:
 - The results in Table 3 in Liu et al. (2020+) can be reproduced by typing the following lines to the R software:
 
 
-*library(devtools)
+*library(devtools)*
 
-*install_github('ecnuliuyang/CRAbun')
+*install_github('ecnuliuyang/CRAbun')*
 
-*example("ipw.mar")
+*example("ipw.mar")*
 
-*example("mi2.mar")
+*example("mi2.mar")*
 
-*example("abun.opt")
+*example("abun.opt")*
 
 
 
