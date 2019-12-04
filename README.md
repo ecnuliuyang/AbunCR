@@ -15,11 +15,9 @@ Here, the tail.length vaiable has 41 missing values, and other variables are alw
 - **ipw.mar**: used to implement the inverse probability weighting method in the presence of missing data. See Lee et al. (2016).
 - **mi2.mar**: used to implement the multiple impution (MI) method in the presence of missing data. See Lee et al. (2016).
 
-### 3. Other functions
 ## Comment
 - **mi2.mar** function is specific to the case where the missing variable is univariate.
 - The results in Table 3 in Liu et al. (2020+) can be reproduced by typing the following lines to the R software:
-
 
 *library(devtools)*
 
@@ -32,7 +30,6 @@ Here, the tail.length vaiable has 41 missing values, and other variables are alw
 *example("mi2.mar")*
 
 *example("abun.opt")*
-
 
 
 ## References
