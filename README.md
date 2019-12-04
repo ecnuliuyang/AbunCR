@@ -35,6 +35,8 @@ we give two functions:
 
 *install_github('ecnuliuyang/CRAbun')*
 
+*library(CRAbun)*
+
 *example("ipw.mar")*
 
 *example("mi2.mar")*
