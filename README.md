@@ -8,25 +8,15 @@ Collected in Hongkong during 17 weeks from Junuary to April in 1993,
 the yellow-bellied prinia data set consists of 163 observations and 6 columns：
 id, number.of.capture, tail.length, fat.index, wing, and wing.index.
 
-Here, the tail.length is a continuous variable, so is the attribute wing (short for wing length).
-While, the fat.index and wing.index are both categorical variables.
-The tail.length vaiable has 41 missing values, and other variables are always observed.
+Here, the tail.length vaiable has 41 missing values, and other variables are always observed. We expected to illustrate the performance of EL method in the presence of missing data in Liu et al. (2020+).
 
-This dataset is used in Liu et al. (2020+) to illustrate the performance of EL method in the presence of missing data.
-
-### 2. Optimization algorithm for EL methods
-A function **abun.opt** is provided to obtain the maximum EL estimator and EL ratio confidence interval of the abundance. Std. Error is also given for reference.
+### 2. Three main functions
+- **abun.opt**: used to implement the EL method whenever there is missing data or not. See  Liu et al. (2017) and Liu et al. (2020+).
+- **ipw.mar**: used to implement the inverse probability weighting method in the presence of missing data. See Lee et al. (2016).
+- **mi2.mar**: used to implement the multiple impution (MI) method in the presence of missing data. See Lee et al. (2016).
 
 ### 3. Other functions
-To compare the performance of the EL methods and the existing 
-inverse probability weighting (IPW) and multiple impution (MI) methods
-proposed by Lee et al. (2016),
-we give two functions:
-- **ipw.mar**: used to implement the IPW method.
-- **mi2.mar**: used to implement the MI method.
-
 ## Comment
-- **abun.opt** function can deal with all cases whenever there is missing data or not.
 - **mi2.mar** function is specific to the case where the missing variable is univariate.
 - The results in Table 3 in Liu et al. (2020+) can be reproduced by typing the following lines to the R software:
 
