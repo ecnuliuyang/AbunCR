@@ -2,20 +2,17 @@
 This package aims to show how to implement empirical likelihood (EL) methods under the Huggin-Alho model in capture-recapture studies.
 As an example, we analyze a real data to show how to reproduce the results of Table 3 in Liu et al. (2020+).
 
-## Instruction about CRAbun package
+## Vignette about CRAbun package
 ### 1. A Data set named "prinia"
-This dataset is composed of 6 columns:
-- id: unique identifier.
-- number.of.capture: number of times an individual is captured.
-- tail.length: individual covariate (50mm~91.25mm) with 41 missing records.
-- fat.index: 0 (nonfat) and 1 (fat), 
-which respectively corresponds to level 1 and level 2-4 in original data.
-- wing: individual covariate (43mm~49mm).
-- wing.index: 0 (normal length) and 1 (long length), where "normal" means that the wing length ranges from 37mm to 45.5mm
-and "long" means that the wing length is larger than 45.5mm.
+Collected in Hongkong during 17 weeks from Junuary to April in 1993,
+Yellow-bellied prinia data set consists of 163 observations and 6 columns：
+id, number.of.capture, tail.length, fat.index, wing, and wing.index.
+
+Here, the tail.length is a continuous variable, so is the wing column (wing length).
+While, the fat.index and wing.index are both categorical variables.
 
 ### 2. Optimization algorithm for EL methods
-To obtain the maximum EL estimator and EL ratio confidence interval of the abundance *N*, 
+To obtain the maximum EL estimator and EL ratio confidence interval of the abundance
 we provide a function **abun.opt** with 8 options.
 - d: vector stands for the number of times of being captured.
 - K: number stands for the number of capture occasions.
@@ -30,13 +27,15 @@ and FALSE to not.
 
 
 ### 3. Other functions
-To compare the performance of the proposed EL methods and the existing 
+To compare the performance of the EL methods and the existing 
 inverse probability weighting (IPW) and multiple impution (MI) methods
 proposed by Lee et al. (2016),
 we give two functions:
 - **ipw.mar**: used to implement the IPW method.
 - **mi2.mar**: used to implement the MI method.
 
+## Comment
+**mi2.mar** function is specific to the case where the missing variable *y* is univariate.
 
 ## References
 
