@@ -28,6 +28,20 @@ we give two functions:
 ## Comment
 - **abun.opt** function can deal with all cases whenever there is missing data or not.
 - **mi2.mar** function is specific to the case where the missing variable is univariate.
+- The results in Table 3 in Liu et al. (2020+) can be reproduced by typing the following lines to the R software:
+
+*
+library(devtools)
+
+install_github('ecnuliuyang/CRAbun')
+
+example("ipw.mar")
+
+example("mi2.mar")
+
+example("abun.opt")
+*
+
 
 ## References
 Lee, S.-M., W.-H. Hwang, and J. de Dieu Tapsoba (2016). 
