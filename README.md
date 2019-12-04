@@ -27,7 +27,7 @@ we give two functions:
 
 ## Comment
 - **abun.opt** function can deal with all cases whenever there is missing data or not.
-- **mi2.mar** function is specific to the case where the missing variable *y* is univariate.
+- **mi2.mar** function is specific to the case where the missing variable is univariate.
 
 ## References
 Lee, S.-M., W.-H. Hwang, and J. de Dieu Tapsoba (2016). 
