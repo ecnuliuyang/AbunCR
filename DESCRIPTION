@@ -1,16 +1,17 @@
 Package: CRAbun
 Type: Package
-Title: Maximum likelihood abundance estimation from capture-recapture data when covariates are missing at random
+Title: Maximum likelihood abundance estimation from capture-recapture
+        data under the Huggins-Alho model
 Version: 0.1.0
-Date: 2019-01-28
+Date: 2019-12-03
 Author: Yang Liu
 Maintainer: Yang Liu <liuyangecnu@163.com>
-Description: This package allows for the maximum likelihood abundance estimation
-    for abundance under capture-recapture models when covariates are missing at random.
-    We calculate the maximum empirical likelihood estimates of the abundance and 
-    parameters in the capture probability. We also give a empirical likelihood ratio 
-    confidence interval of the abundance. In addition, we provide the corresponding estimates 
-    based on the inverse probability weighting and multiple imputation methods. 
+Description: This package allows for the maximum empirical likelihood (EL) estimation for the abundance 
+    under the Huggins-Alho (H-A) capture probability model. We calculate the maximum EL estimate and
+    EL ratio confidence interval of the abundance, as well as the EL estimate of parameters in the H-A model.
+    Thier standard errors are also provided for reference.
 License: GPL
 Encoding: UTF-8
 LazyData: true
+NeedsCompilation: no
+Packaged: 2019-12-04 02:40:44 UTC; aria
