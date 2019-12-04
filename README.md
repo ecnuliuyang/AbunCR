@@ -30,17 +30,17 @@ we give two functions:
 - **mi2.mar** function is specific to the case where the missing variable is univariate.
 - The results in Table 3 in Liu et al. (2020+) can be reproduced by typing the following lines to the R software:
 
-*
-library(devtools)
 
-install_github('ecnuliuyang/CRAbun')
+*library(devtools)
 
-example("ipw.mar")
+*install_github('ecnuliuyang/CRAbun')
 
-example("mi2.mar")
+*example("ipw.mar")
 
-example("abun.opt")
-*
+*example("mi2.mar")
+
+*example("abun.opt")
+
 
 
 ## References
